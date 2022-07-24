@@ -4,29 +4,36 @@ from lexer import Token
 from lexer import TokenType
 import exception
 
-class Node():
+
+class Node:
     pass
+
 
 class Identifier(Node):
     def __init__(self, token):
         self.token = token
 
+
 class Comment(Node):
     def __init__(self, token):
         self.token = token
+
 
 class Return(Node):
     def __init__(self, expr_node):
         self.expr_node = expr_node
 
+
 class Expr(Node):
     def __init__(self, expr_node):
         self.expr_node = expr_node
+
 
 class Conditional(Node):
     def __init__(self, condition, block):
         self.condition = condition
         self.block = block
+
 
 class If(Node):
     def __init__(self, if_part, elif_parts, else_part):
@@ -34,10 +41,12 @@ class If(Node):
         self.elif_parts = elif_parts
         self.else_part = else_part
 
+
 class While(Node):
     def __init__(self, condition, block):
         self.condition = condition
         self.block = block
+
 
 class For(Node):
     def __init__(self, var: Identifier, iterable, block):
@@ -45,29 +54,36 @@ class For(Node):
         self.iterable = iterable
         self.block = block
 
+
 class Continue(Node):
     pass
 
+
 class Break(Node):
     pass
+
 
 class Assign(Node):
     def __init__(self, left, expr):
         self.left = left
         self.expr = expr
 
+
 class Program(Node):
     def __init__(self, declarations: List[Node]):
         self.declarations = declarations
+
 
 class Block(Node):
     def __init__(self, declarations: List[Node]):
         self.declarations = declarations
 
+
 class VarDecl(Node):
     def __init__(self, var: Identifier, expr_node):
         self.var = var
         self.expr_node = expr_node
+
 
 class FuncDecl(Node):
     def __init__(self, func: Identifier, params: List[Token], block: Block):
@@ -75,94 +91,106 @@ class FuncDecl(Node):
         self.params = params
         self.block = block
 
+
 class Or(Node):
     def __init__(self, left, right):
         self.left = left
         self.right = right
+
 
 class And(Node):
     def __init__(self, left, right):
         self.left = left
         self.right = right
 
-class Equal(Node):
-    def __init__(self, left, right, is_equal):
-        self.left = left
-        self.right = right
-        self.is_equal = is_equal
 
 class Compare(Node):
-    def __init__(self, left, right, op_type):
+    def __init__(self, left, right, op_type: str):
         self.left = left
         self.right = right
         self.op_type = op_type
+
 
 class Add(Node):
     def __init__(self, left, right):
         self.left = left
         self.right = right
 
+
 class Sub(Node):
     def __init__(self, left, right):
         self.left = left
         self.right = right
+
 
 class Mul(Node):
     def __init__(self, left, right):
         self.left = left
         self.right = right
 
+
 class Div(Node):
     def __init__(self, left, right):
         self.left = left
         self.right = right
+
 
 class Mod(Node):
     def __init__(self, left, right):
         self.left = left
         self.right = right
 
+
 class Not(Node):
     def __init__(self, node):
         self.node = node
 
+
 class Negative(Node):
     def __init__(self, node):
         self.node = node
+
 
 class ArrayAccess(Node):
     def __init__(self, node: Node, index: Node):
         self.node = node
         self.index = index
 
+
 class FunctionCall(Node):
     def __init__(self, node, arguments):
-        self.name = node
+        self.func = node
         self.arguments = arguments
+
 
 class _True(Node):
     pass
 
+
 class _False(Node):
     pass
 
+
 class Nil(Node):
     pass
+
 
 class Number(Node):
     def __init__(self, token):
         self.token = token
 
+
 class String(Node):
     def __init__(self, token):
         self.token = token
+
 
 class Array(Node):
     def __init__(self, args):
         self.elements = args
 
 
-class Parser():
+class Parser:
     def __init__(self, token_queue):
         self.token_queue = token_queue
         self.current_token = self.token_queue.get()
@@ -176,7 +204,6 @@ class Parser():
     def eat(self, type):
         if self.current_token.type == type:
             self.current_token = self.token_queue.get()
-            print("Current: %s" % self.current_token)
         else:
             self.raise_error()
 
@@ -218,39 +245,6 @@ class Parser():
             self.eat(TokenType.STRING)
             return node
 
-        #elif self.current_token.type == TokenType.L_PAREN:
-        #    self.eat(TokenType.L_PAREN)
-        #    expr = self.expression()
-        #    self.eat(TokenType.R_PAREN)
-        #    return expr
-
-        ## eg: [1, 2, 3]
-        #elif self.current_token.type == TokenType.L_SQUARE:
-        #    self.eat(TokenType.L_SQUARE)
-        #    if self.current_token.type == TokenType.R_SQUARE:
-        #        self.eat(TokenType.R_SQUARE)
-        #        return Array([])
-
-        #    args = self.arguments()
-        #    res = Array(args)
-        #    self.eat(TokenType.R_SQUARE)
-
-        #    return res
-
-    #def primary_or_call(self):
-    #    node = self.primary()
-    #    if self.current_token.type == TokenType.L_PAREN:
-    #        self.eat(TokenType.L_PAREN)
-
-    #        args = []
-    #        if self.current_token.type != TokenType.R_PAREN:
-    #            args = self.arguments()
-
-    #        self.eat(TokenType.R_PAREN)
-    #        node = FunctionCall(node, args)
-
-    #    return node
-
     def primary(self):
         if self.current_token.type in (TokenType.L_PAREN, TokenType.L_SQUARE):
             if self.current_token.type == TokenType.L_PAREN:
@@ -265,7 +259,10 @@ class Parser():
                 return Array(args)
 
         node = self.atom()
-        while self.current_token.type in (TokenType.L_PAREN, TokenType.L_SQUARE):
+        while self.current_token.type in (
+            TokenType.L_PAREN,
+            TokenType.L_SQUARE,
+        ):
             if self.current_token.type == TokenType.L_PAREN:
                 self.eat(TokenType.L_PAREN)
                 args = []
@@ -354,7 +351,7 @@ class Parser():
             self.eat(op_type)
             right = self.comparison()
 
-            left = Equal(left, right, op_type == TokenType.EQUAL)
+            left = Compare(left, right, op_type.value)
 
         return left
 
@@ -382,7 +379,7 @@ class Parser():
         if self.current_token.type != TokenType.R_SQUARE:
             args = self.arguments()
         self.eat(TokenType.R_SQUARE)
-        
+
         return Array(args)
 
     def expression(self):
@@ -391,7 +388,7 @@ class Parser():
 
         left = self.logic_or()
         if self.current_token.type == TokenType.ASSIGN:
-            assert(isinstance(left, Identifier) or isinstance(left, ArrayAccess))
+            assert isinstance(left, Identifier) or isinstance(left, ArrayAccess)
             self.eat(TokenType.ASSIGN)
             expr = self.expression()
             left = Assign(left, expr)

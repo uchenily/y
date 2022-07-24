@@ -5,6 +5,7 @@ import exception
 
 skip_comment = True
 
+
 class TokenType(Enum):
     ID = "identifier"
     NUMBER = "number"
@@ -61,6 +62,7 @@ class TokenType(Enum):
     def __str__(self):
         return self.name
 
+
 def _build_keywords():
     token_list = list(TokenType)
     start = token_list.index(TokenType.VAR)
@@ -81,11 +83,12 @@ class Token(object):
         self.value = value
 
     def __str__(self):
-        return (f"Token(  {self.type:<10} {str(self.value):<16}  )")
+        return f"Token(  {self.type:<10} {str(self.value):<16}  )"
 
 
-class Lexer():
+class Lexer:
     """Lexical analyzer"""
+
     def __init__(self, text):
         self.text = text
         self.pos = 0
@@ -109,12 +112,12 @@ class Lexer():
 
     def get_indent(self):
         chars = []
-        while self.pos < len(self.text) and self.current_char == ' ':
-            chars.append(' ')
+        while self.pos < len(self.text) and self.current_char == " ":
+            chars.append(" ")
             self.advance()
 
-        res = ''.join(chars)
-        return res.replace(' ', '▇')
+        res = "".join(chars)
+        return res.replace(" ", "▇")
 
     def skip_whitespace(self):
         self.advance()
@@ -129,7 +132,7 @@ class Lexer():
         chars.append('"')
         self.advance()
 
-        res = ''.join(chars)
+        res = "".join(chars)
         return res
 
     def get_number(self):
@@ -156,7 +159,8 @@ class Lexer():
     def get_id(self):
         chars = []
         while self.pos < len(self.text) and (
-            self.current_char.isalnum() or self.current_char == '_'):
+            self.current_char.isalnum() or self.current_char == "_"
+        ):
             chars.append(self.current_char)
             self.advance()
 
@@ -165,7 +169,7 @@ class Lexer():
 
     def get_comment(self):
         line = []
-        while self.pos < len(self.text) and self.current_char != '\n':
+        while self.pos < len(self.text) and self.current_char != "\n":
             line.append(self.current_char)
             self.advance()
 
@@ -180,7 +184,7 @@ class Lexer():
         """执行结束返回token列表"""
         while self.pos < len(self.text):
             # indent/dedent
-            if self.peek(-1) == '\n':
+            if self.peek(-1) == "\n":
                 value = self.get_indent()
                 indent_len = len(value)
                 while indent_len < self.indent_stack.peek():
@@ -198,7 +202,7 @@ class Lexer():
                 self.skip_whitespace()
 
             # comment
-            elif self.current_char == '#':
+            elif self.current_char == "#":
                 value = self.get_comment()
                 if not skip_comment:
                     token = Token(TokenType.COMMENT, value)
@@ -217,124 +221,124 @@ class Lexer():
                 self.token_queue.put(token)
 
             # two-character tokens
-            elif self.current_char == '<' and self.peek() == '=':
+            elif self.current_char == "<" and self.peek() == "=":
                 token = Token(TokenType.LESS_EQUAL, "<=")
                 self.token_queue.put(token)
                 self.advance(2)
 
-            elif self.current_char == '>' and self.peek() == '=':
+            elif self.current_char == ">" and self.peek() == "=":
                 token = Token(TokenType.GREATER_EQUAL, ">=")
                 self.token_queue.put(token)
                 self.advance(2)
 
-            elif self.current_char == '!' and self.peek() == '=':
+            elif self.current_char == "!" and self.peek() == "=":
                 token = Token(TokenType.NOT_EQUAL, "!=")
                 self.token_queue.put(token)
                 self.advance(2)
 
-            elif self.current_char == '=' and self.peek() == '=':
+            elif self.current_char == "=" and self.peek() == "=":
                 token = Token(TokenType.EQUAL, "==")
                 self.token_queue.put(token)
                 self.advance(2)
 
-            elif self.current_char == '&' and self.peek() == '&':
+            elif self.current_char == "&" and self.peek() == "&":
                 token = Token(TokenType.AND, "&&")
                 self.token_queue.put(token)
                 self.advance(2)
 
-            elif self.current_char == '|' and self.peek() == '|':
+            elif self.current_char == "|" and self.peek() == "|":
                 token = Token(TokenType.OR, "||")
                 self.token_queue.put(token)
                 self.advance(2)
 
             # single character tokens
-            elif self.current_char == '+':
-                token = Token(TokenType.PLUS, '+')
+            elif self.current_char == "+":
+                token = Token(TokenType.PLUS, "+")
                 self.token_queue.put(token)
                 self.advance()
 
-            elif self.current_char == '-':
-                token = Token(TokenType.MINUS, '-')
+            elif self.current_char == "-":
+                token = Token(TokenType.MINUS, "-")
                 self.token_queue.put(token)
                 self.advance()
 
-            elif self.current_char == '*':
-                token = Token(TokenType.MUL, '*')
+            elif self.current_char == "*":
+                token = Token(TokenType.MUL, "*")
                 self.token_queue.put(token)
                 self.advance()
 
-            elif self.current_char == '/':
-                token = Token(TokenType.DIV, '/')
+            elif self.current_char == "/":
+                token = Token(TokenType.DIV, "/")
                 self.token_queue.put(token)
                 self.advance()
 
-            elif self.current_char == '%':
-                token = Token(TokenType.MOD, '%')
+            elif self.current_char == "%":
+                token = Token(TokenType.MOD, "%")
                 self.token_queue.put(token)
                 self.advance()
 
-            elif self.current_char == '(':
-                token = Token(TokenType.L_PAREN, '(')
+            elif self.current_char == "(":
+                token = Token(TokenType.L_PAREN, "(")
                 self.token_queue.put(token)
                 self.advance()
 
-            elif self.current_char == ')':
-                token = Token(TokenType.R_PAREN, ')')
+            elif self.current_char == ")":
+                token = Token(TokenType.R_PAREN, ")")
                 self.token_queue.put(token)
                 self.advance()
 
-            elif self.current_char == '[':
-                token = Token(TokenType.L_SQUARE, '[')
+            elif self.current_char == "[":
+                token = Token(TokenType.L_SQUARE, "[")
                 self.token_queue.put(token)
                 self.advance()
 
-            elif self.current_char == ']':
-                token = Token(TokenType.R_SQUARE, ']')
+            elif self.current_char == "]":
+                token = Token(TokenType.R_SQUARE, "]")
                 self.token_queue.put(token)
                 self.advance()
 
-            elif self.current_char == '{':
-                token = Token(TokenType.L_CURLY, '{')
+            elif self.current_char == "{":
+                token = Token(TokenType.L_CURLY, "{")
                 self.token_queue.put(token)
                 self.advance()
 
-            elif self.current_char == '}':
-                token = Token(TokenType.R_CURLY, '}')
+            elif self.current_char == "}":
+                token = Token(TokenType.R_CURLY, "}")
                 self.token_queue.put(token)
                 self.advance()
 
-            elif self.current_char == '<':
-                token = Token(TokenType.LESS, '<')
+            elif self.current_char == "<":
+                token = Token(TokenType.LESS, "<")
                 self.token_queue.put(token)
                 self.advance()
 
-            elif self.current_char == '>':
-                token = Token(TokenType.GREATER, '>')
+            elif self.current_char == ">":
+                token = Token(TokenType.GREATER, ">")
                 self.token_queue.put(token)
                 self.advance()
 
-            elif self.current_char == '=':
-                token = Token(TokenType.ASSIGN, '=')
+            elif self.current_char == "=":
+                token = Token(TokenType.ASSIGN, "=")
                 self.token_queue.put(token)
                 self.advance()
 
-            elif self.current_char == '!':
-                token = Token(TokenType.NOT, '!')
+            elif self.current_char == "!":
+                token = Token(TokenType.NOT, "!")
                 self.token_queue.put(token)
                 self.advance()
 
-            elif self.current_char == ',':
-                token = Token(TokenType.COMMA, ',')
+            elif self.current_char == ",":
+                token = Token(TokenType.COMMA, ",")
                 self.token_queue.put(token)
                 self.advance()
 
-            elif self.current_char == ':':
-                token = Token(TokenType.COLON, ':')
+            elif self.current_char == ":":
+                token = Token(TokenType.COLON, ":")
                 self.token_queue.put(token)
                 self.advance()
 
             # identifier
-            elif self.current_char.isalpha() or self.current_char == '_':
+            elif self.current_char.isalpha() or self.current_char == "_":
                 id = self.get_id()
                 if id in keyword_dict:
                     token = Token(keyword_dict[id], id)

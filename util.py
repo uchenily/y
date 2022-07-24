@@ -21,14 +21,16 @@ class Queue(object):
         return len(self._elements)
 
     def __str__(self):
-        res = ['Queue:']
+        res = ["Queue:"]
         for idx, element in enumerate(self._elements):
-            res.append('    %3d %s' % (idx, element))
+            res.append("    %3d %s" % (idx, element))
 
-        return '\n'.join(res)
+        return "\n".join(res)
+
 
 class Stack(object):
     """实现FILO结构"""
+
     def __init__(self):
         self._elements = []
 
