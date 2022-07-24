@@ -26,3 +26,22 @@ class Queue(object):
             res.append('    %3d %s' % (idx, element))
 
         return '\n'.join(res)
+
+class Stack(object):
+    """实现FILO结构"""
+    def __init__(self):
+        self._elements = []
+
+    def push(self, element):
+        self._elements.append(element)
+
+    def pop(self):
+        assert self._elements
+        return self._elements.pop()
+
+    def peek(self):
+        assert self._elements
+        return self._elements[-1]
+
+    def __len__(self):
+        return len(self._elements)

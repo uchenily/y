@@ -1,6 +1,9 @@
 from util import Queue
+from util import Stack
 from enum import Enum
 import exception
+
+skip_comment = True
 
 class TokenType(Enum):
     ID = "identifier"
@@ -8,6 +11,7 @@ class TokenType(Enum):
     STRING = "string"
     COMMENT = "comment"
     INDENT = "indent"
+    DEDENT = "dedent"
 
     L_PAREN = "("
     R_PAREN = ")"
@@ -27,6 +31,9 @@ class TokenType(Enum):
     EQUAL = "=="
     NOT_EQUAL = "!="
 
+    AND = "&&"
+    OR = "||"
+
     PLUS = "+"
     MINUS = "-"
     MUL = "*"
@@ -39,13 +46,12 @@ class TokenType(Enum):
     IF = "if"
     ELSE = "else"
     ELSEIF = "elif"
-    WHILTE = "while"
+    WHILE = "while"
     RETURN = "return"
     FOR = "for"
+    IN = "in"
     CONTINUE = "continue"
     BREAK = "break"
-    AND = "and"
-    OR = "or"
     TRUE = "true"
     FALSE = "false"
     NIL = "nil"
@@ -75,7 +81,7 @@ class Token(object):
         self.value = value
 
     def __str__(self):
-        return (f"Token(type={self.type}, value='{self.value}')")
+        return (f"Token(  {self.type:<10} {str(self.value):<16}  )")
 
 
 class Lexer():
@@ -84,6 +90,8 @@ class Lexer():
         self.text = text
         self.pos = 0
         self.token_queue = Queue()
+        self.indent_stack = Stack()
+        self.indent_stack.push(0)
 
     @property
     def current_char(self):
@@ -100,17 +108,16 @@ class Lexer():
         self.pos += step
 
     def get_indent(self):
-        chars = [' ']
+        chars = []
         while self.pos < len(self.text) and self.current_char == ' ':
             chars.append(' ')
             self.advance()
 
         res = ''.join(chars)
-        return res
+        return res.replace(' ', '▇')
 
     def skip_whitespace(self):
-        while self.pos < len(self.text) and self.current_char.isspace():
-            self.advance()
+        self.advance()
 
     def get_string(self):
         chars = ['"']
@@ -122,7 +129,6 @@ class Lexer():
         chars.append('"')
         self.advance()
 
-        self.advance()
         res = ''.join(chars)
         return res
 
@@ -144,7 +150,6 @@ class Lexer():
             res = float("".join(chars))
             return res
 
-        self.advance()
         res = int("".join(chars))
         return res
 
@@ -155,7 +160,6 @@ class Lexer():
             chars.append(self.current_char)
             self.advance()
 
-        self.advance()
         res = "".join(chars)
         return res
 
@@ -175,21 +179,30 @@ class Lexer():
     def run(self):
         """执行结束返回token列表"""
         while self.pos < len(self.text):
-            # indent
-            if self.current_char == ' ' and self.peek(-1) == '\n' \
-                and self.peek(-2) == ':':
+            # indent/dedent
+            if self.peek(-1) == '\n':
                 value = self.get_indent()
-                token = Token(TokenType.INDENT, value)
+                indent_len = len(value)
+                while indent_len < self.indent_stack.peek():
+                    self.indent_stack.pop()
+                    token = Token(TokenType.DEDENT)
+                    self.token_queue.put(token)
+
+                if indent_len > self.indent_stack.peek():
+                    self.indent_stack.push(indent_len)
+                    token = Token(TokenType.INDENT, value)
+                    self.token_queue.put(token)
 
             # skip whitespace
-            elif self.current_char.isspace():
+            if self.current_char.isspace():
                 self.skip_whitespace()
 
             # comment
             elif self.current_char == '#':
                 value = self.get_comment()
-                token = Token(TokenType.COMMENT, value)
-                self.token_queue.put(token)
+                if not skip_comment:
+                    token = Token(TokenType.COMMENT, value)
+                    self.token_queue.put(token)
 
             # string
             elif self.current_char == '"':
@@ -221,6 +234,16 @@ class Lexer():
 
             elif self.current_char == '=' and self.peek() == '=':
                 token = Token(TokenType.EQUAL, "==")
+                self.token_queue.put(token)
+                self.advance(2)
+
+            elif self.current_char == '&' and self.peek() == '&':
+                token = Token(TokenType.AND, "&&")
+                self.token_queue.put(token)
+                self.advance(2)
+
+            elif self.current_char == '|' and self.peek() == '|':
+                token = Token(TokenType.OR, "||")
                 self.token_queue.put(token)
                 self.advance(2)
 
@@ -323,6 +346,9 @@ class Lexer():
             else:
                 self.raise_error()
 
+        while self.indent_stack.pop():
+            token = Token(TokenType.DEDENT)
+            self.token_queue.put(token)
         token = Token(TokenType.EOF, "EOF")
         self.token_queue.put(token)
 
