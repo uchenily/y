@@ -22,12 +22,14 @@ else:
 
 is analyzed as:
 
+```
 <if> <foo> <:>                    [0]
 <INDENT> <if> <bar> <:>           [0, 4]
 <INDENT> <x> <=> <42>             [0, 4, 8]
 <DEDENT> <DEDENT> <else> <:>      [0]
 <INDENT> <print> <foo>            [0, 4]
 <DEDENT> 
+```
 
 The parser than handles the "INDENT" and "DEDENT" tokens as block delimiters.
 

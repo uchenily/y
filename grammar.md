@@ -1,5 +1,6 @@
 // vim: et ts=8
 
+```
 program         → declaration* EOF
 
 declaration     → varDecl
@@ -55,3 +56,4 @@ atom            → "true" | "false" | "nil" | NUMBER | STRING | IDENTIFIER
 function        → IDENTIFIER "(" parameters? ")" block
 parameters      → IDENTIFIER ( "," IDENTIFIER )*
 arguments       → expression ( "," expression )*
+```

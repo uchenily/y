@@ -1,3 +1,4 @@
+```shell
 (venv) [root@archlinux]# cat fibonacci.y
 func fib(n):
     if n <= 2:
@@ -26,3 +27,4 @@ sys     0m0.004s
 real    0m30.613s
 user    0m30.582s
 sys     0m0.010s
+```
