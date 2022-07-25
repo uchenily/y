@@ -82,10 +82,7 @@ class VisualizeAST(NodeVisitor):
         for arg in node.arguments:
             if isinstance(arg, ArrayAccess):
                 args.append(
-                    str(arg.node.token.value)
-                    + "["
-                    + str(arg.index.token.value)
-                    + "]"
+                    str(arg.node.token.value) + "[" + str(arg.index.token.value) + "]"
                 )
             else:
                 args.append(str(arg.token.value).replace('"', ""))

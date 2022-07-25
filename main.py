@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 from lexer import Lexer
 from parser import Parser
 from interpreter import Interpreter
@@ -6,7 +8,12 @@ from visualize_ast import VisualizeAST
 
 def main():
     program = None
-    with open("fibonacci.y") as fp:
+    import sys
+
+    file = "fibonacci.y"
+    if len(sys.argv) > 1:
+        file = sys.argv[1]
+    with open(file) as fp:
         program = fp.read()
 
     lexer = Lexer(program)

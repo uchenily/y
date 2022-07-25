@@ -183,6 +183,21 @@ class Lexer:
     def run(self):
         """执行结束返回token列表"""
         while self.pos < len(self.text):
+            # ignore blank lines
+            if self.peek(-1) == "\n":
+                index = 0
+                while self.pos < len(self.text):
+                    char = self.peek(index)
+                    # NOTE: '\n' is space too.
+                    if char == "\n":
+                        index += 1
+                        self.pos += index
+                        continue
+                    elif char.isspace():
+                        index += 1
+                    else:
+                        break
+
             # indent/dedent
             if self.peek(-1) == "\n":
                 value = self.get_indent()

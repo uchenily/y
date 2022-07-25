@@ -1,3 +1,4 @@
+from typing import Union
 from enum import Enum
 
 from util import Stack
@@ -76,12 +77,18 @@ class _True:
         return "true"
 
 
+true = _True()
+
+
 class _False:
     def __str__(self):
         return "false"
 
     def __bool__(self):
         return False
+
+
+false = _False()
 
 
 class Nil:
@@ -92,11 +99,14 @@ class Nil:
         return False
 
 
+nil = Nil()
+
+
 def native_print(args):
     for arg in args:
         print(arg, end=" ")
     print()
-    return Nil()
+    return Nil
 
 
 builtin_functions = {
@@ -174,7 +184,7 @@ class Interpreter(NodeVisitor):
         if node.expr_node:
             value = self.visit(node.expr_node)
         else:
-            value = Nil()
+            value = nil
         self.current_frame[node.var.token.value] = value
 
     def visit_FuncDecl(self, node):
@@ -226,10 +236,10 @@ class Interpreter(NodeVisitor):
 
         return retval.value
 
-    def visit_Block(self, node):
+    def visit_Block(self, node) -> Union[Return, Break, Continue]:
         for declaration in node.declarations:
             retval = self.visit(declaration)
-            if type(retval).__name__ == "Return":
+            if isinstance(retval, Return):
                 return retval
 
             """
@@ -240,13 +250,13 @@ class Interpreter(NodeVisitor):
                 if a == 10:    | block2 |
                     break      |        |
             """
-            if type(retval).__name__ == "Break":
-                return Break()
+            if retval is Break:
+                return retval
 
-            if type(retval).__name__ == "Continue":
-                return Continue()
+            if retval is Continue:
+                return retval
 
-        return Nil()
+        return Return(nil)
 
     def visit_Number(self, node):
         return Number(node.token.value)
@@ -337,28 +347,28 @@ class Interpreter(NodeVisitor):
         return Or(left, right)
 
     def visit__True(self, node):
-        return _True()
+        return true
 
     def visit__False(self, node):
-        return _False()
+        return false
 
     def visit_Nil(self, node):
-        return Nil()
+        return nil
 
     def visit_Break(self, node):
-        return Break()
+        return Break
 
     def visit_Continue(self, node):
-        return Continue()
+        return Continue
 
     def visit_While(self, node):
         while self.visit(node.condition):
             retval = self.visit(node.block)
-            if type(retval).__name__ == "Return":
+            if isinstance(retval, Return):
                 return retval.value
-            if type(retval).__name__ == "Break":
+            if retval is Break:
                 break
-            if type(retval).__name__ == "Continue":
+            if retval is Continue:
                 continue
 
     def visit_For(self, node):
