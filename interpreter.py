@@ -106,11 +106,17 @@ def native_print(args):
     for arg in args:
         print(arg, end=" ")
     print()
-    return Nil
+    return nil
+
+
+def native_range(args):
+    left, right = args[0].value, args[1].value
+    return range(left, right)
 
 
 builtin_functions = {
     "print": native_print,
+    "range": native_range,
     # "len": native_len,
 }
 
@@ -129,8 +135,11 @@ class Environment:
     def __setitem__(self, key, value):
         self.kvs[key] = value
 
+    def __delitem__(self, key):
+        del self.kvs[key]
 
-class ActivationRecord(object):
+
+class ActivationRecord:
     def __init__(self, name, type, nesting_level, outer_space=None):
         self.name = name
         self.type = type
@@ -143,8 +152,11 @@ class ActivationRecord(object):
     def __setitem__(self, key, value):
         self.environ[key] = value
 
+    def __delitem__(self, key):
+        del self.environ[key]
+
     def get(self, key):
-        return self.environ[key]
+        return self.__getitem__(key)
 
     def __str__(self):
         lines = ["%d: %s %s" % (self.nesting_level, self.type.value, self.name)]
@@ -225,18 +237,18 @@ class Interpreter(NodeVisitor):
         self.call_stack.push(new_frame)
         self.current_frame = new_frame
 
-        # print(self.current_frame)
-
         # 执行函数
         retval = self.visit(f_obj.block)
-        assert isinstance(retval, Return)
+        assert retval is nil or isinstance(retval, Return)
 
         self.call_stack.pop()
         self.current_frame = self.call_stack.peek()
 
-        return retval.value
+        if isinstance(retval, Return):
+            return retval.value
+        return retval
 
-    def visit_Block(self, node) -> Union[Return, Break, Continue]:
+    def visit_Block(self, node) -> Union[Return, Break, Continue, Nil]:
         for declaration in node.declarations:
             retval = self.visit(declaration)
             if isinstance(retval, Return):
@@ -256,7 +268,8 @@ class Interpreter(NodeVisitor):
             if retval is Continue:
                 return retval
 
-        return Return(nil)
+        # block执行结束, 没有遇到return/break/continue
+        return nil
 
     def visit_Number(self, node):
         return Number(node.token.value)
@@ -372,4 +385,17 @@ class Interpreter(NodeVisitor):
                 continue
 
     def visit_For(self, node):
-        pass
+        var_name = node.var.token.value
+        iterable = self.visit(node.iterable)
+        for value in iterable:
+            try:
+                self.current_frame[var_name] = value
+                retval = self.visit(node.block)
+                if isinstance(retval, Return):
+                    return retval.value
+                if retval is Break:
+                    break
+                if retval is Continue:
+                    continue
+            finally:
+                del self.current_frame[var_name]
