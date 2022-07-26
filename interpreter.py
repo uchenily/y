@@ -1,4 +1,5 @@
 from typing import Union
+from typing import Optional
 from enum import Enum
 import codecs
 
@@ -12,6 +13,17 @@ class Function:
         self.name = f_name
         self.params = f_params
         self.block = f_block
+
+
+class Array:
+    def __init__(self, elements):
+        self.elements = elements
+
+    def __str__(self):
+        return "[" + ",".join([str(e) for e in self.elements]) + "]"
+
+    def __bool__(self):
+        return len(self.elements) == 0
 
 
 class String:
@@ -45,7 +57,18 @@ class And:
         return "true" if self.left and self.right else "false"
 
     def __bool__(self):
-        return self.left and self.right
+        """
+        NOTE:
+        >>> 1 and 2
+        2
+        >>> 2 and 1
+        1
+        >>> True and 3
+        3
+
+        return self.left and self.right ==> unexpected result
+        """
+        return bool(self.left) and bool(self.right)
 
 
 class Or:
@@ -57,7 +80,18 @@ class Or:
         return "true" if self.left or self.right else "false"
 
     def __bool__(self):
-        return self.left or self.right
+        return bool(self.left) or bool(self.right)
+
+
+class Not:
+    def __init__(self, value):
+        self.value = value
+
+    def __str__(self):
+        return "false" if self.value else "true"
+
+    def __bool__(self):
+        return not self.value
 
 
 class Break:
@@ -107,7 +141,7 @@ def native_print(args):
     for arg in args:
         # 将原始字符串转为普通字符串(支持转义)
         if isinstance(arg, String):
-            arg = codecs.decode(arg.value, 'unicode_escape')
+            arg = codecs.decode(arg.value, "unicode_escape")
         print(arg, end=" ")
     print()
     return nil
@@ -115,7 +149,7 @@ def native_print(args):
 
 def native_range(args):
     left, right = args[0].value, args[1].value
-    return range(left, right)
+    return [Number(i) for i in range(left, right)]
 
 
 builtin_functions = {
@@ -126,7 +160,7 @@ builtin_functions = {
 
 
 class Environment:
-    def __init__(self, outer_space: "ActivationRecord"):
+    def __init__(self, outer_space: Optional["ActivationRecord"]):
         self.kvs = dict()
         self.outer_space = outer_space
 
@@ -177,7 +211,7 @@ class ARType(Enum):
 
 class Interpreter(NodeVisitor):
     def __init__(self):
-        self.current_frame = None
+        self.current_frame: ActivationRecord
         self.call_stack = Stack()
 
     def run(self, ast_tree):
@@ -349,8 +383,18 @@ class Interpreter(NodeVisitor):
         return Return(self.visit(node.expr_node))
 
     def visit_Assign(self, node):
-        left_name = node.left.token.value
         expr = self.visit(node.expr)
+        if type(node.left).__name__ == "ArrayAccess":
+            arr_name = node.left.node.token.value
+            arr_index = self.visit(node.left.index)
+            array = self.current_frame[arr_name]
+            assert isinstance(array, Array)
+            assert isinstance(arr_index, Number)
+            assert arr_index.value < len(array.elements)
+            array.elements[arr_index.value] = expr
+            return
+
+        left_name = node.left.token.value
         self.current_frame[left_name] = expr
 
     def visit_And(self, node):
@@ -362,6 +406,10 @@ class Interpreter(NodeVisitor):
         left = self.visit(node.left)
         right = self.visit(node.right)
         return Or(left, right)
+
+    def visit_Not(self, node):
+        value = self.visit(node.node)
+        return Not(value)
 
     def visit__True(self, node):
         return true
@@ -403,3 +451,23 @@ class Interpreter(NodeVisitor):
                     continue
             finally:
                 del self.current_frame[var_name]
+
+    def visit_Array(self, node):
+        elements = []
+        for elem in node.elements:
+            elements.append(self.visit(elem))
+        return Array(elements)
+
+    def visit_ArrayAccess(self, node):
+        arr_name = self.visit(node.node)
+        arr_index = self.visit(node.index)
+        assert isinstance(arr_index, Number)
+        if isinstance(arr_name, Array):
+            assert arr_index.value < len(arr_name.elements)
+            return arr_name.elements[arr_index.value]
+
+        arr_name = node.node.token.value
+        array = self.current_frame[arr_name]
+        assert isinstance(array, Array)
+        assert arr_index.value < len(array.elements)
+        return array.elements[arr_index.value]
