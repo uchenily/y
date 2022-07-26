@@ -1,5 +1,6 @@
 from typing import Union
 from enum import Enum
+import codecs
 
 from util import Stack
 from visitor import NodeVisitor
@@ -15,7 +16,7 @@ class Function:
 
 class String:
     def __init__(self, value):
-        self.value = value
+        self.value = value[1:-1]
 
     def __str__(self):
         return self.value
@@ -104,6 +105,9 @@ nil = Nil()
 
 def native_print(args):
     for arg in args:
+        # 将原始字符串转为普通字符串(支持转义)
+        if isinstance(arg, String):
+            arg = codecs.decode(arg.value, 'unicode_escape')
         print(arg, end=" ")
     print()
     return nil
