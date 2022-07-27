@@ -1,6 +1,8 @@
 import textwrap
 
-from parser import ArrayAccess, Identifier, Parser
+from parser import ArrayAccess
+from parser import Identifier
+from parser import Token
 from visitor import NodeVisitor
 
 
@@ -84,8 +86,10 @@ class VisualizeAST(NodeVisitor):
                 args.append(
                     str(arg.node.token.value) + "[" + str(arg.index.token.value) + "]"
                 )
-            else:
+            elif isinstance(arg, Token):
                 args.append(str(arg.token.value).replace('"', ""))
+            else:
+                args.append("<???>")
 
         args = ",".join(args)
         s = '  node%d [label="%s(%s)"]\n' % (self.count, fname, args)

@@ -1,1 +1,2 @@
-[ ] support block scope
+- [x] support block scope
+- [ ] support closure

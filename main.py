@@ -5,6 +5,9 @@ from parser import Parser
 from interpreter import Interpreter
 from visualize_ast import VisualizeAST
 
+debug = False
+gen_ast = True
+
 
 def main():
     program = None
@@ -18,15 +21,18 @@ def main():
 
     lexer = Lexer(program)
     tokens = lexer.run()
-    # print(tokens)
+    if debug:
+        print(tokens)
     parser = Parser(tokens)
     ast = parser.run()
-    # ast_visitor = VisualizeAST()
-    # ast_visitor.visit(ast)
-    # dot = ast_visitor.gendot()
-    ## print(dot)
-    # with open('astree.dot', 'w') as f:
-    #    f.write(dot)
+    if gen_ast:
+        ast_visitor = VisualizeAST()
+        ast_visitor.visit(ast)
+        dot = ast_visitor.gendot()
+        if debug:
+            print(dot)
+        with open("astree.dot", "w") as f:
+            f.write(dot)
 
     interpreter = Interpreter()
     interpreter.run(ast)

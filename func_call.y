@@ -25,3 +25,6 @@ func use_global():
 
 var ret = use_global()
 print(ret)
+
+var rename = hello
+rename()

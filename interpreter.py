@@ -7,6 +7,8 @@ from util import Stack
 from visitor import NodeVisitor
 from exception import InterpreterError
 
+debug = False
+
 
 class Function:
     def __init__(self, f_name, f_params, f_block):
@@ -173,6 +175,12 @@ class Environment:
     def __setitem__(self, key, value):
         self.kvs[key] = value
 
+    def set(self, key, value):
+        if key in self.kvs:
+            self.kvs[key] = value
+        if self.outer_space:
+            self.outer_space.environ.set(key, value)
+
     def __delitem__(self, key):
         del self.kvs[key]
 
@@ -196,6 +204,14 @@ class ActivationRecord:
     def get(self, key):
         return self.__getitem__(key)
 
+    def set(self, key, value):
+        """
+        NOTE: 这里 set 和 __setitem__ 语义并不等同.
+        __setitem__: 只会向当前活动记录添加kv对;
+        set: 如果当前活动记录不存在key, set会递归查找上层;
+        """
+        self.environ.set(key, value)
+
     def __str__(self):
         lines = ["%d: %s %s" % (self.nesting_level, self.type.value, self.name)]
         for k, v in self.environ.kvs.items():
@@ -203,10 +219,14 @@ class ActivationRecord:
         s = "\n".join(lines)
         return s
 
+    def upper(self):
+        return self.environ.outer_space
+
 
 class ARType(Enum):
     PROGRAM = "program"
     FUNCTION = "function"
+    BLOCK = "block"
 
 
 class Interpreter(NodeVisitor):
@@ -218,7 +238,7 @@ class Interpreter(NodeVisitor):
         self.visit(ast_tree)
 
     def visit_Unknown(self, node):
-        print("Unknown %s" % type(node))
+        print("Unknown `%s`" % type(node))
 
     def visit_Program(self, node):
         main_frame = ActivationRecord("main", ARType.PROGRAM, nesting_level=1)
@@ -267,7 +287,7 @@ class Interpreter(NodeVisitor):
                 print("-" * 20)
                 print(self.call_stack.pop())
 
-            raise InterpreterError("Function %s is not defined" % f_name)
+            raise InterpreterError("Function `%s` is not defined" % f_name)
         # 将形参 - 实参对存入ActivationRecord中
         for param, arg in zip(f_obj.params, node.arguments):
             new_frame[param] = self.visit(arg)
@@ -279,6 +299,9 @@ class Interpreter(NodeVisitor):
         retval = self.visit(f_obj.block)
         assert retval is nil or isinstance(retval, Return)
 
+        if debug:
+            print(self.current_frame)
+
         self.call_stack.pop()
         self.current_frame = self.call_stack.peek()
 
@@ -287,27 +310,39 @@ class Interpreter(NodeVisitor):
         return retval
 
     def visit_Block(self, node) -> Union[Return, Break, Continue, Nil]:
-        for declaration in node.declarations:
-            retval = self.visit(declaration)
-            if isinstance(retval, Return):
-                return retval
+        new_frame = ActivationRecord(
+            "<block>",
+            ARType.BLOCK,
+            self.current_frame.nesting_level + 1,
+            self.current_frame,
+        )
+        self.call_stack.push(new_frame)
+        self.current_frame = new_frame
+        try:
+            for declaration in node.declarations:
+                retval = self.visit(declaration)
+                if isinstance(retval, Return):
+                    return retval
 
-            """
-            当执行到break/continue语句的时候, 应该传递给上层(比如for-block, while-block)
-            var a = 1
-            while true:                 | block1
-                a = a + 1               |
-                if a == 10:    | block2 |
-                    break      |        |
-            """
-            if retval is Break:
-                return retval
+                """
+                当执行到break/continue语句的时候, 应该传递给上层(比如for-block, while-block)
+                var a = 1
+                while true:                 | block1
+                    a = a + 1               |
+                    if a == 10:    | block2 |
+                        break      |        |
+                """
+                if retval is Break:
+                    return retval
 
-            if retval is Continue:
-                return retval
+                if retval is Continue:
+                    return retval
 
-        # block执行结束, 没有遇到return/break/continue
-        return nil
+            # block执行结束, 没有遇到return/break/continue
+            return nil
+        finally:
+            self.call_stack.pop()
+            self.current_frame = self.call_stack.peek()
 
     def visit_Number(self, node):
         return Number(node.token.value)
@@ -315,7 +350,7 @@ class Interpreter(NodeVisitor):
     def visit_Identifier(self, node):
         retval = self.current_frame.get(node.token.value)
         if retval is None:
-            raise InterpreterError("Identifier %s is not defined" % node.token.value)
+            raise InterpreterError("Identifier `%s` is not defined" % node.token.value)
         return retval
 
     def visit_Add(self, node):
@@ -375,12 +410,16 @@ class Interpreter(NodeVisitor):
         elif op_type == "!=":
             return left.value != right.value
         else:
-            raise InterpreterError("Unknown Compare op_type %s" % op_type)
+            raise InterpreterError("Unknown Compare op_type `%s`" % op_type)
 
     def visit_Return(self, node):
-        if self.current_frame.type != ARType.FUNCTION:
-            raise InterpreterError("'return' outside function")
-        return Return(self.visit(node.expr_node))
+        frame = self.current_frame
+        while frame.type != ARType.PROGRAM:
+            if frame.type == ARType.FUNCTION:
+                return Return(self.visit(node.expr_node))
+            frame = frame.upper()
+
+        raise InterpreterError("`return` outside function")
 
     def visit_Assign(self, node):
         expr = self.visit(node.expr)
@@ -395,7 +434,9 @@ class Interpreter(NodeVisitor):
             return
 
         left_name = node.left.token.value
-        self.current_frame[left_name] = expr
+        if self.current_frame.get(left_name) is None:
+            raise InterpreterError("Assign to an unknown variable `%s`" % left_name)
+        self.current_frame.set(left_name, expr)
 
     def visit_And(self, node):
         left = self.visit(node.left)
