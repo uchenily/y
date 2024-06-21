@@ -2,6 +2,7 @@ import textwrap
 
 from parser import ArrayAccess
 from parser import Identifier
+from parser import Number
 from parser import Token
 from visitor import NodeVisitor
 
@@ -88,6 +89,10 @@ class VisualizeAST(NodeVisitor):
                 )
             elif isinstance(arg, Token):
                 args.append(str(arg.token.value).replace('"', ""))
+            elif isinstance(arg, Number):
+                args.append(str(arg.token.value))
+            elif isinstance(arg, Identifier):
+                args.append(str(arg.token.value))
             else:
                 args.append("<???>")
 

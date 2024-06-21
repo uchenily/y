@@ -1,3 +1,9 @@
+```python
+# test script
+for i in range(1, 10):
+    print(i)
+```
+
 ![AST](https://g.gravizo.com/source/y_mark?https://raw.githubusercontent.com/uchenily/y/main/README.md)
 
 <details>
@@ -13,10 +19,10 @@ digraph astgraph {
   node1 [label="For"]
   node2 [label="i"]
   node1 -> node2
-  node3 [label="range(<???>,<???>)"]
+  node3 [label="range(1,10)"]
   node1 -> node3
   node4 [label="Block"]
-  node5 [label="print(<???>)"]
+  node5 [label="print(i)"]
   node4 -> node5
   node1 -> node4
   node0 -> node1
