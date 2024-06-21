@@ -1,11 +1,11 @@
-from typing import Union
-from typing import Optional
-from enum import Enum
 import codecs
+from enum import Enum
+from typing import Optional
+from typing import Union
 
+from exception import InterpreterError
 from util import Stack
 from visitor import NodeVisitor
-from exception import InterpreterError
 
 debug = False
 

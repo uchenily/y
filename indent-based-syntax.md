@@ -28,7 +28,7 @@ is analyzed as:
 <INDENT> <x> <=> <42>             [0, 4, 8]
 <DEDENT> <DEDENT> <else> <:>      [0]
 <INDENT> <print> <foo>            [0, 4]
-<DEDENT> 
+<DEDENT>
 ```
 
 The parser than handles the "INDENT" and "DEDENT" tokens as block delimiters.

@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
-
+from interpreter import Interpreter
 from lexer import Lexer
 from parser import Parser
-from interpreter import Interpreter
 from visualize_ast import VisualizeAST
 
 debug = False

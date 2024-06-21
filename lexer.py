@@ -1,7 +1,8 @@
+from enum import Enum
+
+import exception
 from util import Queue
 from util import Stack
-from enum import Enum
-import exception
 
 skip_comment = True
 

@@ -1,8 +1,8 @@
 from typing import List
 
+import exception
 from lexer import Token
 from lexer import TokenType
-import exception
 
 
 class Node:
@@ -473,7 +473,6 @@ class Parser:
         return Return(expr)
 
     def if_statement(self):
-
         self.eat(TokenType.IF)
         if_cond = self.expression()
         self.eat(TokenType.COLON)

@@ -23,8 +23,8 @@ statement       → exprStmt
 
 exprStmt        → expression
 forStmt         → "for" IDENTIFIER "in" expression COLON block
-ifStmt          → "if" expression COLON block 
-                ( "elif" expression COLON block )* 
+ifStmt          → "if" expression COLON block
+                ( "elif" expression COLON block )*
                 ( "else" COLON block )?
 returnStmt      → "return" expression?
 whileStmt       → "while" expression COLON block
