@@ -4,7 +4,9 @@ for i in range(1, 10):
     print(i)
 ```
 
-![AST](https://g.gravizo.com/source/y_mark?https://raw.githubusercontent.com/uchenily/y/main/README.md)
+<p align="center">
+<img width="600" height="300" src="https://g.gravizo.com/source/y_mark?https://raw.githubusercontent.com/uchenily/y/main/README.md">
+</p>
 
 <details>
 <summary></summary>
