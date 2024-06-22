@@ -8,12 +8,12 @@ from visualize_ast import VisualizeAST
 
 
 def main():
-    parser = argparse.ArgumentParser(prog="y-interpreter")
-    parser.add_argument("file", help="要执行的y脚本文件")
-    parser.add_argument("--debug", action="store_true", help="开启调试")
-    parser.add_argument("--ast", action="store_true", help="生成AST")
-    parser.add_argument("--ast-file", help="生成AST文件名", default="astree.dot")
-    args = parser.parse_args()
+    arg_parser = argparse.ArgumentParser(prog="y-interpreter")
+    arg_parser.add_argument("file", help="要执行的y脚本文件")
+    arg_parser.add_argument("--debug", action="store_true", help="开启调试")
+    arg_parser.add_argument("--ast", action="store_true", help="生成AST")
+    arg_parser.add_argument("--ast-file", help="生成AST文件名", default="astree.dot")
+    args = arg_parser.parse_args()
     with open(args.file) as fp:
         program = fp.read()
 
@@ -21,6 +21,7 @@ def main():
     tokens = lexer.run()
     if args.debug:
         print(tokens)
+
     parser = Parser(tokens)
     ast = parser.run()
     if args.ast:

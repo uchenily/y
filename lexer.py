@@ -90,10 +90,13 @@ class Token(object):
 class Lexer:
     """Lexical analyzer"""
 
-    def __init__(self, text):
+    def __init__(self, text: str):
         self.text = text
+        # 当前解析的字符位置
         self.pos = 0
+        # 存储 token
         self.token_queue = Queue()
+        # 控制缩进，表示当前缩进级别
         self.indent_stack = Stack()
         self.indent_stack.push(0)
 
@@ -102,6 +105,7 @@ class Lexer:
         return self.text[self.pos]
 
     def peek(self, pos=1):
+        # 查看当前位置+offset处A的字符 (self.pos + pos)
         peek_pos = self.pos + pos
         if peek_pos < 0 or peek_pos >= len(self.text):
             return None
@@ -112,13 +116,12 @@ class Lexer:
         self.pos += step
 
     def get_indent(self):
-        chars = []
+        """读取空格个数n, 并返回字符串 "▇" * n"""
+        num = 0
         while self.pos < len(self.text) and self.current_char == " ":
-            chars.append(" ")
+            num += 1
             self.advance()
-
-        res = "".join(chars)
-        return res.replace(" ", "▇")
+        return "▇" * num
 
     def skip_whitespace(self):
         self.advance()
@@ -181,23 +184,26 @@ class Lexer:
     def raise_error(self):
         raise exception.LexerError(f"Lexer error. '{self.current_char}'")
 
+    def ignore_blank(self):
+        # ignore blank lines
+        if self.peek(-1) == "\n":
+            index = 0
+            while self.pos < len(self.text):
+                char = self.peek(index)
+                # NOTE: '\n' is space too.
+                if char == "\n":
+                    index += 1
+                    self.pos += index
+                    continue
+                elif char != None and char.isspace():
+                    index += 1
+                else:
+                    break
+
     def run(self):
         """执行结束返回token列表"""
         while self.pos < len(self.text):
-            # ignore blank lines
-            if self.peek(-1) == "\n":
-                index = 0
-                while self.pos < len(self.text):
-                    char = self.peek(index)
-                    # NOTE: '\n' is space too.
-                    if char == "\n":
-                        index += 1
-                        self.pos += index
-                        continue
-                    elif char.isspace():
-                        index += 1
-                    else:
-                        break
+            self.ignore_blank()
 
             # indent/dedent
             if self.peek(-1) == "\n":
