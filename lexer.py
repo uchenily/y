@@ -160,7 +160,7 @@ class Lexer:
         res = int("".join(chars))
         return res
 
-    def get_id(self):
+    def get_identifier(self):
         chars = []
         while self.ok() and (self.current_char.isalnum() or self.current_char == "_"):
             chars.append(self.current_char)
@@ -182,7 +182,7 @@ class Lexer:
     def raise_error(self):
         raise exception.LexerError(f"Lexer error. '{self.current_char}'")
 
-    def ignore_blank(self):
+    def skip_blanklines(self):
         # ignore blank lines
         if self.peek(-1) == "\n":
             index = 0
@@ -201,24 +201,28 @@ class Lexer:
     def ok(self):
         return self.pos < len(self.text)
 
+    def handle_indent(self):
+        # indent/dedent
+        if self.peek(-1) == "\n":
+            value = self.get_indent()
+            indent_len = len(value)
+            # 反缩进(可能有多个)
+            while indent_len < self.indent_stack.peek():
+                self.indent_stack.pop()
+                token = Token(TokenType.DEDENT)
+                self.token_queue.put(token)
+
+            # 缩进
+            if indent_len > self.indent_stack.peek():
+                self.indent_stack.push(indent_len)
+                token = Token(TokenType.INDENT, value)
+                self.token_queue.put(token)
+
     def run(self):
         """执行结束返回token列表"""
         while self.ok():
-            self.ignore_blank()
-
-            # indent/dedent
-            if self.peek(-1) == "\n":
-                value = self.get_indent()
-                indent_len = len(value)
-                while indent_len < self.indent_stack.peek():
-                    self.indent_stack.pop()
-                    token = Token(TokenType.DEDENT)
-                    self.token_queue.put(token)
-
-                if indent_len > self.indent_stack.peek():
-                    self.indent_stack.push(indent_len)
-                    token = Token(TokenType.INDENT, value)
-                    self.token_queue.put(token)
+            self.skip_blanklines()
+            self.handle_indent()
 
             # skip whitespace
             if self.current_char.isspace():
@@ -362,7 +366,7 @@ class Lexer:
 
             # identifier
             elif self.current_char.isalpha() or self.current_char == "_":
-                id = self.get_id()
+                id = self.get_identifier()
                 if id in keyword_dict:
                     token = Token(keyword_dict[id], id)
                 else:
