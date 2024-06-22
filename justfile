@@ -18,6 +18,7 @@ run-all:
     # ./main.py error.y
     ./main.py fibonacci.y
     ./main.py for.y
+    ./main.py for_range.y
     ./main.py func2.y
     ./main.py func_args.y
     ./main.py func_call.y
