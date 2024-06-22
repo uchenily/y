@@ -118,7 +118,7 @@ class Lexer:
     def get_indent(self):
         """读取空格个数n, 并返回字符串 "▇" * n"""
         num = 0
-        while self.pos < len(self.text) and self.current_char == " ":
+        while self.ok() and self.current_char == " ":
             num += 1
             self.advance()
         return "▇" * num
@@ -129,7 +129,7 @@ class Lexer:
     def get_string(self):
         chars = ['"']
         self.advance()
-        while self.pos < len(self.text) and self.current_char != '"':
+        while self.ok() and self.current_char != '"':
             chars.append(self.current_char)
             self.advance()
 
@@ -141,7 +141,7 @@ class Lexer:
 
     def get_number(self):
         chars = []
-        while self.pos < len(self.text) and self.current_char.isdigit():
+        while self.ok() and self.current_char.isdigit():
             chars.append(self.current_char)
             self.advance()
 
@@ -149,7 +149,7 @@ class Lexer:
             chars.append(".")
             self.advance()
 
-            while self.pos < len(self.text) and self.current_char.isdigit():
+            while self.ok() and self.current_char.isdigit():
                 chars.append(self.current_char)
                 self.advance()
 
@@ -162,9 +162,7 @@ class Lexer:
 
     def get_id(self):
         chars = []
-        while self.pos < len(self.text) and (
-            self.current_char.isalnum() or self.current_char == "_"
-        ):
+        while self.ok() and (self.current_char.isalnum() or self.current_char == "_"):
             chars.append(self.current_char)
             self.advance()
 
@@ -173,7 +171,7 @@ class Lexer:
 
     def get_comment(self):
         line = []
-        while self.pos < len(self.text) and self.current_char != "\n":
+        while self.ok() and self.current_char != "\n":
             line.append(self.current_char)
             self.advance()
 
@@ -188,7 +186,7 @@ class Lexer:
         # ignore blank lines
         if self.peek(-1) == "\n":
             index = 0
-            while self.pos < len(self.text):
+            while self.ok():
                 char = self.peek(index)
                 # NOTE: '\n' is space too.
                 if char == "\n":
@@ -200,9 +198,12 @@ class Lexer:
                 else:
                     break
 
+    def ok(self):
+        return self.pos < len(self.text)
+
     def run(self):
         """执行结束返回token列表"""
-        while self.pos < len(self.text):
+        while self.ok():
             self.ignore_blank()
 
             # indent/dedent
