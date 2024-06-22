@@ -418,6 +418,7 @@ class Interpreter(NodeVisitor):
             if frame.type == ARType.FUNCTION:
                 return Return(self.visit(node.expr_node))
             frame = frame.upper()
+            assert frame != None
 
         raise InterpreterError("`return` outside function")
 
@@ -477,7 +478,7 @@ class Interpreter(NodeVisitor):
             if retval is Continue:
                 continue
 
-    def visit_For(self, node):
+    def visit_RangeFor(self, node):
         var_name = node.var.token.value
         iterable = self.visit(node.iterable)
         for value in iterable:
@@ -492,6 +493,20 @@ class Interpreter(NodeVisitor):
                     continue
             finally:
                 del self.current_frame[var_name]
+
+    def visit_For(self, node):
+        self.visit(node.init)
+        while self.visit(node.cond):
+            try:
+                retval = self.visit(node.block)
+                if isinstance(retval, Return):
+                    return retval.value
+                if retval is Break:
+                    break
+                if retval is Continue:
+                    continue
+            finally:
+                self.visit(node.incr)
 
     def visit_Array(self, node):
         elements = []

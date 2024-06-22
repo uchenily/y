@@ -1,4 +1,5 @@
 from typing import List
+from typing import Union
 
 import exception
 from lexer import Token
@@ -48,10 +49,18 @@ class While(Node):
         self.block = block
 
 
-class For(Node):
+class RangeFor(Node):
     def __init__(self, var: Identifier, iterable, block):
         self.var = var
         self.iterable = iterable
+        self.block = block
+
+
+class For(Node):
+    def __init__(self, init, cond, incr, block):
+        self.init = init
+        self.cond = cond
+        self.incr = incr
         self.block = block
 
 
@@ -500,16 +509,36 @@ class Parser:
 
         return If(if_part, elif_parts, else_part)
 
-    def for_statement(self):
-        self.eat(TokenType.FOR)
-        var = Identifier(self.current_token)
-        self.eat(TokenType.ID)
-        self.eat(TokenType.IN)
-        iterable = self.expression()
-        self.eat(TokenType.COLON)
-        block = self.block()
+    def for_statement(self) -> Union[For, RangeFor]:
+        # 类型1: for-range
+        # for id in range(expr):
+        #     block
 
-        return For(var, iterable, block)
+        # 类型2:
+        # for (init; cond; incr):
+        #     block
+        self.eat(TokenType.FOR)
+
+        if self.current_token.type == TokenType.ID:
+            var = Identifier(self.current_token)
+            self.eat(TokenType.ID)
+            self.eat(TokenType.IN)
+            iterable = self.expression()
+            self.eat(TokenType.COLON)
+            block = self.block()
+            return RangeFor(var, iterable, block)
+        else:
+            assert self.current_token.type == TokenType.L_PAREN
+            self.eat(TokenType.L_PAREN)
+            init_decl = self.declaration()
+            self.eat(TokenType.SEMICOLON)
+            cond_expr = self.expression()
+            self.eat(TokenType.SEMICOLON)
+            incr_expr = self.expression()
+            self.eat(TokenType.R_PAREN)
+            self.eat(TokenType.COLON)
+            block = self.block()
+            return For(init_decl, cond_expr, incr_expr, block)
 
     def while_statement(self):
         self.eat(TokenType.WHILE)

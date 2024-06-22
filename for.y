@@ -1,10 +1,4 @@
-# for (var i = 1; i < 10; i++):
-#     print(i)
-
-# for i in range(10):
-#     print(i)
-
-for i in range(1, 10):
+# TODO:
+# for (var i = 0; i < 10; i += 1):
+for (var i = 0; i < 10; i = i + 1):
     print(i)
-
-# print(i) # i is not defined here

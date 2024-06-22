@@ -23,6 +23,7 @@ class TokenType(Enum):
     R_CURLY = "}"
     COMMA = ","
     COLON = ":"
+    SEMICOLON = ";"
 
     LESS = "<"
     GREATER = ">"
@@ -361,6 +362,11 @@ class Lexer:
 
             elif self.current_char == ":":
                 token = Token(TokenType.COLON, ":")
+                self.token_queue.put(token)
+                self.advance()
+
+            elif self.current_char == ";":
+                token = Token(TokenType.SEMICOLON, ";")
                 self.token_queue.put(token)
                 self.advance()
 
