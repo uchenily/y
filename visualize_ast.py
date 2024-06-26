@@ -362,13 +362,24 @@ class VisualizeAST(NodeVisitor):
         node._num = self.count
         self.count += 1
 
-    def visit_For(self, node):
+    def visit_RangeFor(self, node):
         s = '  node%d [label="For"]\n' % self.count
         self.dot_body.append(s)
         node._num = self.count
         self.count += 1
 
         for child in (node.var, node.iterable, node.block):
+            self.visit(child)
+            s = "  node%d -> node%d\n" % (node._num, child._num)
+            self.dot_body.append(s)
+
+    def visit_For(self, node):
+        s = '  node%d [label="For"]\n' % self.count
+        self.dot_body.append(s)
+        node._num = self.count
+        self.count += 1
+
+        for child in (node.init, node.cond, node.incr, node.block):
             self.visit(child)
             s = "  node%d -> node%d\n" % (node._num, child._num)
             self.dot_body.append(s)
