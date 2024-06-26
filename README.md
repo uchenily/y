@@ -5,13 +5,7 @@ for i in range(1, 10):
 ```
 
 <p align="center">
-<img width="600" height="300" src="https://g.gravizo.com/source/y_mark?https://raw.githubusercontent.com/uchenily/y/main/README.md">
-</p>
-
-<details>
-<summary></summary>
-y_mark
-
+<img width="600" height="300" src='https://g.gravizo.com/svg?
 digraph astgraph {
           node [fontsize=12, fontname="Courier", height=.1];
           # ranksep=.3;
@@ -29,9 +23,8 @@ digraph astgraph {
   node1 -> node4
   node0 -> node1
 }
-
-y_mark
-</details>
+'/>
+</p>
 
 ```python
 for (var i = 0; i < 10; i = i + 1):
@@ -39,13 +32,7 @@ for (var i = 0; i < 10; i = i + 1):
 ```
 
 <p align="center">
-<img width="600" height="300" src="https://g.gravizo.com/source/y2_mark?https://raw.githubusercontent.com/uchenily/y/main/README.md">
-</p>
-
-<details>
-<summary></summary>
-y2_mark
-
+<img width="600" height="300" src='https://g.gravizo.com/svg?
 digraph astgraph {
           node [fontsize=12, fontname="Courier", height=.1];
           # ranksep=.3;
@@ -79,6 +66,5 @@ i"]
   node1 -> node11
   node0 -> node1
 }
-
-y2_mark
-</details>
+'/>
+</p>
