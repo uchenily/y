@@ -4,7 +4,8 @@ for i in range(1, 10):
     print(i)
 ```
 
-![AST](https://g.gravizo.com/svg?
+<p align="center">
+<img width="600" height="300" src='https://g.gravizo.com/svg?
 digraph astgraph {
           node [fontsize=12, fontname="Courier", height=.1];
           # ranksep=.3;
@@ -22,14 +23,16 @@ digraph astgraph {
   node1 -> node4
   node0 -> node1
 }
-)
+'/>
+</p>
 
 ```python
 for (var i = 0; i < 10; i = i + 1):
     print(i)
 ```
 
-![AST](https://g.gravizo.com/svg?
+<p align="center">
+<img width="600" height="300" src='https://g.gravizo.com/svg?
 digraph astgraph {
           node [fontsize=12, fontname="Courier", height=.1];
           # ranksep=.3;
@@ -63,4 +66,5 @@ i"]
   node1 -> node11
   node0 -> node1
 }
-)
+'/>
+</p>
